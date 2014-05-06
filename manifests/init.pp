@@ -16,7 +16,7 @@ class appie {
         group => root,
     }
 
-    define app($app) {
+    define app($app, $source) {
         #exec { "appie app:mkenv $app $name":
         #    path => [ "/bin", "/usr/bin", "/usr/sbin", "/sbin" ],
         #}
@@ -26,6 +26,7 @@ class appie {
         $user = "app-$app-$name"
 
         group { $user:
+            ensure => 'present',
         }
         user { $user:
             ensure => 'present',
@@ -65,6 +66,26 @@ class appie {
             group => $user,
             mode => 600,
             source => "puppet:///modules/appie/ssh/known_hosts"
+        }
+        file { "${ssh_dir}/authorized_keys":
+            require => File[$ssh_dir],
+            owner => $user,
+            group => $user,
+            mode => 600,
+            source => "puppet:///modules/appie/ssh/authorized_keys"
+        }
+
+        vcsrepo { "${home_dir}/project":
+            require => [
+                User[$user],
+                File["${ssh_dir}/known_hosts"],
+                File["${ssh_dir}/id_rsa"],
+            ],
+            ensure => present,
+            user => $user,
+            provider => git,
+            source => $source,
+            #revision => $buildout_rev,
         }
 
     }
