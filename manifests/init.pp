@@ -12,5 +12,7 @@ class appie {
 
     file { "/etc/sudoers.d/appie_applications":
         source => "puppet:///modules/appie/appie_applications",
+	owner => root,
+	group => root,
     }
 }
