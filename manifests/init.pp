@@ -22,6 +22,10 @@ class appie {
         mode => '0755',
     }
 
+    group { "appadmin":
+        ensure => 'present',
+    }
+
     define app($envs) {
         file { "/opt/APPS/$name":
             ensure => directory,
@@ -44,6 +48,7 @@ class appie {
             require => Group[$user],
             ensure => 'present',
             gid => $user,
+            groups => ["appadmin"],
             home => $home_dir,
             managehome => true,
             shell => '/bin/bash',
