@@ -26,6 +26,8 @@ class appie {
         ensure => 'present',
     }
 
+    class { 'postgresql::server': }
+
     define app($envs) {
         file { "/opt/APPS/$name":
             ensure => directory,
@@ -54,6 +56,7 @@ class appie {
             shell => '/bin/bash',
         }
 
+	# SSH access to this account
         file { $ssh_dir:
             require => User[$user],
             ensure => directory,
@@ -76,6 +79,7 @@ class appie {
             source => "puppet:///modules/appie/ssh/authorized_keys"
         }
 
+	# NGINX config
         file { "$home_dir/sites-enabled":
             ensure => directory,
             owner => $user,
@@ -88,5 +92,21 @@ class appie {
             group => root,
             mode => '0444',
         }
+
+	# DB access.  For a better idea to manage DB user/password, see:
+	# http://serverfault.com/questions/353153/managing-service-passwords-with-puppet
+	$secret = "7IVShIxSjyPjwlaio7Ir3J9h1DgDmk9Ie/cpobg5Jla31GJ1lrXU/w"
+	$dbpassword = sha1("${fqdn}-${user}-$secret")
+	file { "${home_dir}/.pgpass":
+            content => "localhost:5432:$user:$user:$dbpassword",
+            owner => $user,
+            group => $user,
+            mode => '0400',
+        }
+        postgresql::server::db { $user:
+            user     => $user,
+            password => postgresql_password($user, $dbpassword),
+        }
     }
+
 }
