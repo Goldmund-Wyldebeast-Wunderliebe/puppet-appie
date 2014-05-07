@@ -1,21 +1,11 @@
 class appie {
-    #file { "/tmp/appie-1.8.1.deb":
-    #    ensure => file,
-    #    source => "puppet:///modules/appie/appie-1.8.1.deb",
-    #}
-
-    #exec { "dpkg -i /tmp/appie-1.8.1.deb":
-    #    alias => "install appie",
-    #    path => [ "/bin", "/usr/bin", "/usr/sbin", "/sbin" ],
-    #    require => File["/tmp/appie-1.8.1.deb"]
-    #}
 
     package { [
-	    'python-virtualenv', 'python-pip', 'python-dev',
-	    'python-psycopg2', 'python-sqlite', 'git', 'libxslt-dev',
-	    'sqlite3', 'gettext',
-	]:
-	ensure => installed,
+            'python-virtualenv', 'python-pip', 'python-dev',
+            'python-psycopg2', 'python-sqlite', 'git', 'libxslt-dev',
+            'sqlite3', 'gettext',
+        ]:
+        ensure => installed,
     }
 
     file { "/etc/sudoers.d/appie_applications":
@@ -24,11 +14,23 @@ class appie {
         group => root,
     }
 
-    define app($app, $source) {
-        #exec { "appie app:mkenv $app $name":
-        #    path => [ "/bin", "/usr/bin", "/usr/sbin", "/sbin" ],
-        #}
+    file { "/opt/APPS":
+        ensure => directory,
+        owner => root,
+        group => root,
+        mode => '0755',
+    }
 
+    define parent_dir() {
+        file { "/opt/APPS/$name":
+            ensure => directory,
+            owner => root,
+            group => root,
+            mode => '0755',
+        }
+    }
+
+    define app($app, $source) {
         $home_dir = "/opt/APPS/$app/$name"
         $ssh_dir = "$home_dir/.ssh"
         $user = "app-$app-$name"
@@ -96,6 +98,5 @@ class appie {
             source => $source,
             #revision => $buildout_rev,
         }
-
     }
 }
