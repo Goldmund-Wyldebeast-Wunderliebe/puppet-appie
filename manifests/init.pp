@@ -10,6 +10,14 @@ class appie {
     #    require => File["/tmp/appie-1.8.1.deb"]
     #}
 
+    package { [
+	    'python-virtualenv', 'python-pip', 'python-dev',
+	    'python-psycopg2', 'python-sqlite', 'git', 'libxslt-dev',
+	    'sqlite3', 'gettext',
+	]:
+	ensure => installed,
+    }
+
     file { "/etc/sudoers.d/appie_applications":
         source => "puppet:///modules/appie/appie_applications",
         owner => root,
