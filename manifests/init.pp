@@ -2,7 +2,7 @@ class appie {
 
     package { [
             'python-virtualenv', 'python-pip', 'python-dev',
-            'python-psycopg2', 'python-sqlite', 'git', 'libxslt-dev',
+            'python-psycopg2', 'python-sqlite', 'git', 'libxslt1-dev',
             'sqlite3', 'gettext',
             'sudo', 'nginx',
         ]:
