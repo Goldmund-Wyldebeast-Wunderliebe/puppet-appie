@@ -28,17 +28,22 @@ class appie {
 
     class { 'postgresql::server': }
 
-    define app($envs) {
+    define app($envs, $secret, $accountinfo, $accounts) {
         file { "/opt/APPS/$name":
             ensure => directory,
             owner => root,
             group => root,
             mode => '0755',
         }
-        appie::appenv { $envs: app => $name }
+        appie::appenv { $envs:
+	    app => $name,
+	    secret => $secret,
+	    accountinfo => $accountinfo,
+	    accounts => $accounts,
+	}
     }
 
-    define appenv($app) {
+    define appenv($app, $secret, $accountinfo, $accounts) {
         $home_dir = "/opt/APPS/$app/$name"
         $ssh_dir = "$home_dir/.ssh"
         $user = "app-$app-$name"
@@ -69,14 +74,15 @@ class appie {
             owner => $user,
             group => $user,
             mode => 600,
-            source => "puppet:///modules/appie/ssh/known_hosts"
+            source => "puppet:///modules/appie/ssh/known_hosts",
         }
         file { "${ssh_dir}/authorized_keys":
             require => File[$ssh_dir],
             owner => $user,
             group => $user,
             mode => 600,
-            source => "puppet:///modules/appie/ssh/authorized_keys"
+            #source => "puppet:///modules/appie/ssh/authorized_keys",
+	    content => template("appie/authorized_keys.erb"),
         }
 
 	# NGINX config
@@ -86,7 +92,7 @@ class appie {
             group => $user,
             mode => '0755',
         }
-        file { "/etc/nginx/conf.d/$user.conf":
+        file { "/etc/nginx/sites-enabled/zzz-$user":
             content => "include $home_dir/sites-enabled/*;",
             owner => root,
             group => root,
@@ -95,7 +101,6 @@ class appie {
 
 	# DB access.  For a better idea to manage DB user/password, see:
 	# http://serverfault.com/questions/353153/managing-service-passwords-with-puppet
-	$secret = "7IVShIxSjyPjwlaio7Ir3J9h1DgDmk9Ie/cpobg5Jla31GJ1lrXU/w"
 	$dbpassword = sha1("${fqdn}-${user}-$secret")
 	file { "${home_dir}/.pgpass":
             content => "localhost:5432:$user:$user:$dbpassword",
