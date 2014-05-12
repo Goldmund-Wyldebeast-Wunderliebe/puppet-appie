@@ -38,14 +38,14 @@ Change the secret! It's used (hashed with hostname and database name) to create 
 
 The account info should be a hash like::
 
-  {
-    ganzevoort => {
-      sshkeytupe => 'ssh-rsa',
-      sshkey => 'AAA.....',
-      # other info
-    },
-    # other accounts
-  }
+    {
+        ganzevoort => {
+            sshkeytupe => 'ssh-rsa',
+            sshkey => 'AAA.....',
+            # other info
+        },
+        # other accounts
+    }
 
 It creates users app-mysite-tst, -acc, -prd with associated postgres databases and nginx configuration.
 The homedirectory (/opt/APPS/mysite/tst etc) contains:
