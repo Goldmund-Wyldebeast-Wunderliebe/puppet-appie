@@ -1,6 +1,11 @@
 class appie {
 
     class background() {
+
+	exec { "apt-get update":
+	    command => "/usr/bin/apt-get update",
+	}
+
         package { [
                 'sudo',
                 'python-virtualenv', 'python-pip', 'python-dev',
@@ -10,6 +15,7 @@ class appie {
                 # 'apache2' or 'nginx',
             ]:
             ensure => installed,
+	    require => Exec['apt-get update'],
         }
 
         file { "/etc/sudoers.d/appie_applications":
@@ -44,6 +50,7 @@ class appie {
             owner => root,
             group => root,
             mode => '0755',
+	    require => File["/opt/APPS"],
         }
         $users = split(
             inline_template(
@@ -75,7 +82,7 @@ class appie {
             ensure => 'present',
         }
         user { $user:
-            require => Group[$user],
+            require => [Group[$user], File["/opt/APPS/$app"]],
             ensure => 'present',
             gid => $user,
             groups => ["appadmin"],
@@ -110,6 +117,7 @@ class appie {
 
         # APACHE/NGINX config
         file { "$home_dir/sites-enabled":
+            require => User[$user],
             ensure => directory,
             owner => $user,
             group => $user,
@@ -117,6 +125,7 @@ class appie {
         }
         if ($webserver == 'nginx') {
             file { "/etc/nginx/sites-enabled/zzz-$user":
+                require => Package['nginx'],
                 content => "include $home_dir/sites-enabled/*;\n",
                 owner => root,
                 group => root,
@@ -125,6 +134,7 @@ class appie {
             package { 'nginx': ensure => installed }
         } elsif ($webserver == 'apache') {
             file { "/etc/apache2/sites-enabled/zzz-$user":
+                require => Package['apache2'],
                 content => "Include $home_dir/sites-enabled/\n",
                 owner => root,
                 group => root,
