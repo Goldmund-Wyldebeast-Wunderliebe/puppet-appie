@@ -26,27 +26,45 @@ class appie {
         ensure => 'present',
     }
 
-    class { 'postgresql::server': }
-
-    define app($envs, $secret, $accountinfo, $accounts) {
+    define app(
+            $envs,
+            $accountinfo,
+            $accounts = [],
+            $secret = '',
+            $makedb = False,
+            $webserver = 'apache',
+            ) {
         file { "/opt/APPS/$name":
             ensure => directory,
             owner => root,
             group => root,
             mode => '0755',
         }
-        appie::appenv { $envs:
-	    app => $name,
-	    secret => $secret,
-	    accountinfo => $accountinfo,
-	    accounts => $accounts,
-	}
+        $users = split(
+            inline_template(
+                '<%= envs.map { |x| "app-"+name+"-"+x }.join(",") %>'),
+            ',')
+        if (size($accounts) > 0) {
+            $allow = $accounts
+        } else {
+            $allow = keys($accountinfo)
+        }
+        appie::appenv { $users:
+            app => $name,
+            accountinfo => $accountinfo,
+            accounts => $allow,
+            secret => $secret,
+            makedb => $makedb,
+            webserver => $webserver,
+        }
     }
 
-    define appenv($app, $secret, $accountinfo, $accounts) {
-        $home_dir = "/opt/APPS/$app/$name"
+    define appenv($app, $accountinfo, $accounts, $secret, $makedb, $webserver) {
+        $words = split($name, '-')
+        $env = $words[-1]
+        $home_dir = "/opt/APPS/$app/$env"
         $ssh_dir = "$home_dir/.ssh"
-        $user = "app-$app-$name"
+        $user = "$name"
 
         group { $user:
             ensure => 'present',
@@ -61,7 +79,7 @@ class appie {
             shell => '/bin/bash',
         }
 
-	# SSH access to this account
+        # SSH access to this account
         file { $ssh_dir:
             require => User[$user],
             ensure => directory,
@@ -82,35 +100,47 @@ class appie {
             group => $user,
             mode => 600,
             #source => "puppet:///modules/appie/ssh/authorized_keys",
-	    content => template("appie/authorized_keys.erb"),
+            content => template("appie/authorized_keys.erb"),
         }
 
-	# NGINX config
+        # APACHE/NGINX config
         file { "$home_dir/sites-enabled":
             ensure => directory,
             owner => $user,
             group => $user,
             mode => '0755',
         }
-        file { "/etc/nginx/sites-enabled/zzz-$user":
-            content => "include $home_dir/sites-enabled/*;",
-            owner => root,
-            group => root,
-            mode => '0444',
+        if ($webserver == 'nginx') {
+            file { "/etc/nginx/sites-enabled/zzz-$user":
+                content => "include $home_dir/sites-enabled/*;\n",
+                owner => root,
+                group => root,
+                mode => '0444',
+            }
+        } elsif ($webserver == 'apache') {
+            file { "/etc/apache2/sites-enabled/zzz-$user":
+                content => "Include $home_dir/sites-enabled/\n",
+                owner => root,
+                group => root,
+                mode => '0444',
+            }
         }
 
-	# DB access.  For a better idea to manage DB user/password, see:
-	# http://serverfault.com/questions/353153/managing-service-passwords-with-puppet
-	$dbpassword = sha1("${fqdn}-${user}-$secret")
-	file { "${home_dir}/.pgpass":
-            content => "localhost:5432:$user:$user:$dbpassword",
-            owner => $user,
-            group => $user,
-            mode => '0400',
-        }
-        postgresql::server::db { $user:
-            user     => $user,
-            password => postgresql_password($user, $dbpassword),
+        if ($makedb and $secret) {
+            # DB access.  For a better idea to manage DB user/password, see:
+            # http://serverfault.com/questions/353153/managing-service-passwords-with-puppet
+            $dbpassword = sha1("${fqdn}-${user}-$secret")
+            file { "${home_dir}/.pgpass":
+                content => "localhost:5432:$user:$user:$dbpassword\n",
+                owner => $user,
+                group => $user,
+                mode => '0400',
+            }
+            require postgresql::server
+            postgresql::server::db { $user:
+                user     => $user,
+                password => postgresql_password($user, $dbpassword),
+            }
         }
     }
 

@@ -29,8 +29,14 @@ Add a section in your /etc/puppet/manifests/site.pp::
         appie::app { "mysite":
             envs => ["tst", "acc", "prd"],
             secret => "some-secret-change-this",
+            makedb => True,
+            webserver => 'nginx',
             accountinfo => $gw20e::user_accounts,
             accounts => ['ganzevoort', 'vandermeij'],
+        }
+        appie::app { "foo":
+            envs => ["acc"],
+            accountinfo => $gw20e::user_accounts,
         }
     }
 
@@ -47,10 +53,15 @@ The account info should be a hash like::
         # other accounts
     }
 
-It creates users app-mysite-tst, -acc, -prd with associated postgres databases and nginx configuration.
+It creates users app-mysite-tst, -acc, -prd with associated postgres
+databases and nginx configuration.
 The homedirectory (/opt/APPS/mysite/tst etc) contains:
 
 .pgpass with DB credentials,
 .ssh/authorized_keys allowing users to login to this user/host,
 .ssh/known_hosts for github.com's hostkey,
 sites-enabled/ empty directory that's read by nginx.
+
+Similarly, a user app-foo-acc is created, without database, with
+sites-enabled/ directory read by apache, and .ssh/authorized_keys for
+all accounts in $gw20e::user_accounts.
