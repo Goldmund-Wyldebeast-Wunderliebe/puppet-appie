@@ -19,6 +19,7 @@ class appie {
         }
 
         file { "/etc/sudoers.d/appie_applications":
+            require => Package['sudo'],
             source => "puppet:///modules/appie/appie_applications",
             owner => root,
             group => root,
