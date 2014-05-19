@@ -1,29 +1,33 @@
 class appie {
 
-    package { [
-            'python-virtualenv', 'python-pip', 'python-dev',
-            'python-psycopg2', 'python-sqlite', 'git', 'libxslt1-dev',
-            'sqlite3', 'gettext',
-            'sudo', 'nginx',
-        ]:
-        ensure => installed,
-    }
+    class background() {
+        package { [
+                'sudo',
+                'python-virtualenv', 'python-pip', 'python-dev',
+                'python-psycopg2', 'python-sqlite', 'sqlite3',
+                'git', 'libxslt1-dev',
+                'gettext',
+                # 'apache2' or 'nginx',
+            ]:
+            ensure => installed,
+        }
 
-    file { "/etc/sudoers.d/appie_applications":
-        source => "puppet:///modules/appie/appie_applications",
-        owner => root,
-        group => root,
-    }
+        file { "/etc/sudoers.d/appie_applications":
+            source => "puppet:///modules/appie/appie_applications",
+            owner => root,
+            group => root,
+        }
 
-    file { "/opt/APPS":
-        ensure => directory,
-        owner => root,
-        group => root,
-        mode => '0755',
-    }
+        file { "/opt/APPS":
+            ensure => directory,
+            owner => root,
+            group => root,
+            mode => '0755',
+        }
 
-    group { "appadmin":
-        ensure => 'present',
+        group { "appadmin":
+            ensure => 'present',
+        }
     }
 
     define app(
@@ -34,6 +38,7 @@ class appie {
             $makedb = False,
             $webserver = 'apache',
             ) {
+        require appie::background
         file { "/opt/APPS/$name":
             ensure => directory,
             owner => root,
@@ -117,6 +122,7 @@ class appie {
                 group => root,
                 mode => '0444',
             }
+            package { 'nginx': ensure => installed }
         } elsif ($webserver == 'apache') {
             file { "/etc/apache2/sites-enabled/zzz-$user":
                 content => "Include $home_dir/sites-enabled/\n",
@@ -124,6 +130,7 @@ class appie {
                 group => root,
                 mode => '0444',
             }
+            package { 'apache2': ensure => installed }
         }
 
         if ($makedb and $secret) {
