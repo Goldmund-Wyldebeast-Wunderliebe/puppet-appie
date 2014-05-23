@@ -53,9 +53,10 @@ class appie {
             mode => '0755',
 	    require => File["/opt/APPS"],
         }
+	$env_keys = keys($envs)
         $users = split(
             inline_template(
-                '<%= envs.map { |x| "app-"+name+"-"+x }.join(",") %>'),
+                '<%= env_keys.map { |x| "app-"+name+"-"+x }.join(",") %>'),
             ',')
         if (size($accounts) > 0) {
             $allow = $accounts
@@ -69,22 +70,34 @@ class appie {
             secret => $secret,
             makedb => $makedb,
             webserver => $webserver,
+            envs => $envs,
         }
     }
 
-    define appenv($app, $accountinfo, $accounts, $secret, $makedb, $webserver) {
+    define appenv(
+	    $app,
+	    $accountinfo,
+	    $accounts,
+	    $secret,
+	    $makedb,
+	    $webserver,
+	    $envs,
+	    ) {
         $words = split($name, '-')
         $env = $words[-1]
         $home_dir = "/opt/APPS/$app/$env"
         $ssh_dir = "$home_dir/.ssh"
         $user = "$name"
+	$uid = $envs[$env][uid]
 
         group { $user:
+	    gid => $uid,
             ensure => 'present',
         }
         user { $user:
             require => [Group[$user], File["/opt/APPS/$app"]],
             ensure => 'present',
+	    uid => $uid,
             gid => $user,
             groups => ["appadmin"],
             home => $home_dir,
@@ -132,7 +145,6 @@ class appie {
                 group => root,
                 mode => '0444',
             }
-            package { 'nginx': ensure => installed }
         } elsif ($webserver == 'apache') {
             file { "/etc/apache2/sites-enabled/zzz-$user":
                 require => Package['apache2'],
@@ -141,7 +153,6 @@ class appie {
                 group => root,
                 mode => '0444',
             }
-            package { 'apache2': ensure => installed }
         }
 
         if ($makedb and $secret) {
