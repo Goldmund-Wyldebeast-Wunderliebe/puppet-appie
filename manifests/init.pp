@@ -1,7 +1,6 @@
 class appie {
 
     class background() {
-
 	exec { "apt-get update":
 	    command => "/usr/bin/apt-get update",
 	}
@@ -18,22 +17,11 @@ class appie {
 	    require => Exec['apt-get update'],
         }
 
-        file { "/etc/sudoers.d/appie_applications":
-            require => Package['sudo'],
-            source => "puppet:///modules/appie/appie_applications",
-            owner => root,
-            group => root,
-        }
-
         file { "/opt/APPS":
             ensure => directory,
             owner => root,
             group => root,
             mode => '0755',
-        }
-
-        group { "appadmin":
-            ensure => 'present',
         }
     }
 
@@ -99,7 +87,6 @@ class appie {
             ensure => 'present',
 	    uid => $uid,
             gid => $user,
-            groups => ["appadmin"],
             home => $home_dir,
             managehome => true,
             shell => '/bin/bash',
@@ -129,7 +116,7 @@ class appie {
             content => template("appie/authorized_keys.erb"),
         }
 
-        # APACHE/NGINX config
+        # APACHE/NGINX & SUDO config
         file { "$home_dir/sites-enabled":
             require => User[$user],
             ensure => directory,
@@ -138,20 +125,38 @@ class appie {
             mode => '0755',
         }
         if ($webserver == 'nginx') {
-            file { "/etc/nginx/sites-enabled/zzz-$user":
-                require => Package['nginx'],
-                content => "include $home_dir/sites-enabled/*;\n",
-                owner => root,
-                group => root,
-                mode => '0444',
+            file {
+                "/etc/nginx/sites-enabled/zzz-$user":
+                    require => Package['nginx'],
+                    content => "include $home_dir/sites-enabled/*;\n",
+                    owner => root,
+                    group => root,
+                    mode => '0444';
+                "/etc/sudoers.d/$user":
+                    content => "$name ALL=NOPASSWD: \
+                            /etc/init.d/apache2 reload, \
+                            /etc/init.d/nginx reload\n",
+                    require => Package['sudo'],
+                    owner => root,
+                    group => root,
+                    mode => '0444';
             }
         } elsif ($webserver == 'apache') {
-            file { "/etc/apache2/sites-enabled/zzz-$user":
-                require => Package['apache2'],
-                content => "Include $home_dir/sites-enabled/\n",
-                owner => root,
-                group => root,
-                mode => '0444',
+            file {
+                "/etc/apache2/sites-enabled/zzz-$user":
+                    require => Package['apache2'],
+                    content => "Include $home_dir/sites-enabled/\n",
+                    owner => root,
+                    group => root,
+                    mode => '0444';
+                "/etc/sudoers.d/$user":
+                    content => "$name ALL=NOPASSWD: \
+                            /etc/init.d/apache2 reload, \
+                            /etc/init.d/nginx reload\n",
+                    require => Package['sudo'],
+                    owner => root,
+                    group => root,
+                    mode => '0444';
             }
         }
 
