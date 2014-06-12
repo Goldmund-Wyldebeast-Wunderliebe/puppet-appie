@@ -134,7 +134,6 @@ class appie {
                     mode => '0444';
                 "/etc/sudoers.d/$user":
                     content => "$name ALL=NOPASSWD: \
-                            /etc/init.d/apache2 reload, \
                             /etc/init.d/nginx reload\n",
                     require => Package['sudo'],
                     owner => root,
@@ -150,9 +149,8 @@ class appie {
                     group => root,
                     mode => '0444';
                 "/etc/sudoers.d/$user":
-                    content => "$name ALL=NOPASSWD: \
-                            /etc/init.d/apache2 reload, \
-                            /etc/init.d/nginx reload\n",
+                    content => "$name ALL=NOPASSWD: 
+                            /etc/init.d/apache2 reload\n",
                     require => Package['sudo'],
                     owner => root,
                     group => root,

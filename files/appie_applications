@@ -1,4 +1,0 @@
-Cmnd_Alias APACHE = /etc/init.d/apache2 reload
-Cmnd_Alias NGINX = /etc/init.d/nginx reload
-
-%appadmin ALL=NOPASSWD: APACHE,NGINX
