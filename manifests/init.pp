@@ -116,6 +116,34 @@ class appie {
             content => template("appie/authorized_keys.erb"),
         }
 
+	# buildout defaults (eggs-directory)
+	file { "${home_dir}/.buildout":
+            require => User[$user],
+            ensure => directory,
+            owner => $user,
+            group => $user,
+            mode => '0700',
+        }
+	file { [
+		"${home_dir}/.buildout/eggs",
+		"${home_dir}/.buildout/download",
+		"${home_dir}/.buildout/extends",
+	    ]:
+            require => File["${home_dir}/.buildout"],
+            ensure => directory,
+            owner => $user,
+            group => $user,
+            mode => '0700',
+        }
+	file { "${home_dir}/.buildout/default.cfg":,
+            require => File["${home_dir}/.buildout"],
+            owner => $user,
+            group => $user,
+            mode => '0600',
+	    content => template("appie/buildout-default.erb"),
+        }
+
+
         # APACHE/NGINX & SUDO config
         file { "$home_dir/sites-enabled":
             require => User[$user],
