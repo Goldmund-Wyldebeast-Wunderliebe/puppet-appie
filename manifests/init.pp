@@ -6,7 +6,7 @@ class appie {
 	}
 
         package { [
-                'sudo',
+                'ssh', 'sudo',
                 'python-virtualenv', 'python-pip', 'python-dev',
                 'python-psycopg2', 'python-sqlite', 'sqlite3',
                 'git', 'libxslt1-dev',
@@ -31,7 +31,7 @@ class appie {
             $accounts = [],
             $secret = '',
             $makedb = False,
-            $webserver = 'apache',
+            $webserver = 'apache2',
             ) {
         require appie::background
         file { "/opt/APPS/$name":
@@ -140,7 +140,7 @@ class appie {
                     group => root,
                     mode => '0444';
             }
-        } elsif ($webserver == 'apache') {
+        } elsif ($webserver == 'apache2') {
             file {
                 "/etc/apache2/sites-enabled/zzz-$user":
                     require => Package['apache2'],
@@ -149,7 +149,7 @@ class appie {
                     group => root,
                     mode => '0444';
                 "/etc/sudoers.d/$user":
-                    content => "$name ALL=NOPASSWD: 
+                    content => "$name ALL=NOPASSWD: \
                             /etc/init.d/apache2 reload\n",
                     require => Package['sudo'],
                     owner => root,
