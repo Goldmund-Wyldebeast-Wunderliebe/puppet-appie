@@ -10,7 +10,8 @@ class appie {
                 'python-virtualenv', 'python-pip', 'python-dev',
                 'python-psycopg2', 'python-sqlite', 'sqlite3',
                 'git', 'libxslt1-dev',
-                'gettext',
+                'gettext', 'build-essential', 'pkg-config',
+		'libpcre3-dev',
                 # 'apache2' or 'nginx',
             ]:
             ensure => installed,
@@ -166,7 +167,7 @@ class appie {
                     require => Package['sudo'],
                     owner => root,
                     group => root,
-                    mode => '0444';
+                    mode => '0440';
             }
         } elsif ($webserver == 'apache2') {
             file {
@@ -182,7 +183,7 @@ class appie {
                     require => Package['sudo'],
                     owner => root,
                     group => root,
-                    mode => '0444';
+                    mode => '0440';
             }
         }
 
