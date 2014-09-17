@@ -1,9 +1,9 @@
 class appie {
 
     class background() {
-	exec { "apt-get update":
-	    command => "/usr/bin/apt-get update",
-	}
+        exec { "apt-get update":
+            command => "/usr/bin/apt-get update",
+        }
 
         package { [
                 'ssh', 'sudo',
@@ -11,11 +11,11 @@ class appie {
                 'python-psycopg2', 'python-sqlite', 'sqlite3',
                 'git', 'libxslt1-dev',
                 'gettext', 'build-essential', 'pkg-config',
-		'libpcre3-dev',
+                'libpcre3-dev',
                 # 'apache2' or 'nginx',
             ]:
             ensure => installed,
-	    require => Exec['apt-get update'],
+            require => Exec['apt-get update'],
         }
 
         file { "/opt/APPS":
@@ -40,9 +40,9 @@ class appie {
             owner => root,
             group => root,
             mode => '0755',
-	    require => File["/opt/APPS"],
+            require => File["/opt/APPS"],
         }
-	$env_keys = keys($envs)
+        $env_keys = keys($envs)
         $users = split(
             inline_template(
                 '<%= env_keys.map { |x| "app-"+name+"-"+x }.join(",") %>'),
@@ -64,29 +64,29 @@ class appie {
     }
 
     define appenv(
-	    $app,
-	    $accountinfo,
-	    $accounts,
-	    $secret,
-	    $makedb,
-	    $webserver,
-	    $envs,
-	    ) {
+            $app,
+            $accountinfo,
+            $accounts,
+            $secret,
+            $makedb,
+            $webserver,
+            $envs,
+            ) {
         $words = split($name, '-')
         $env = $words[-1]
         $home_dir = "/opt/APPS/$app/$env"
         $ssh_dir = "$home_dir/.ssh"
         $user = "$name"
-	$uid = $envs[$env][uid]
+        $uid = $envs[$env][uid]
 
         group { $user:
-	    gid => $uid,
+            gid => $uid,
             ensure => 'present',
         }
         user { $user:
             require => [Group[$user], File["/opt/APPS/$app"]],
             ensure => 'present',
-	    uid => $uid,
+            uid => $uid,
             gid => $user,
             home => $home_dir,
             managehome => true,
@@ -117,31 +117,31 @@ class appie {
             content => template("appie/authorized_keys.erb"),
         }
 
-	# buildout defaults (eggs-directory)
-	file { "${home_dir}/.buildout":
+        # buildout defaults (eggs-directory)
+        file { "${home_dir}/.buildout":
             require => User[$user],
             ensure => directory,
             owner => $user,
             group => $user,
             mode => '0700',
         }
-	file { [
-		"${home_dir}/.buildout/eggs",
-		"${home_dir}/.buildout/download",
-		"${home_dir}/.buildout/extends",
-	    ]:
+        file { [
+                "${home_dir}/.buildout/eggs",
+                "${home_dir}/.buildout/download",
+                "${home_dir}/.buildout/extends",
+            ]:
             require => File["${home_dir}/.buildout"],
             ensure => directory,
             owner => $user,
             group => $user,
             mode => '0700',
         }
-	file { "${home_dir}/.buildout/default.cfg":,
+        file { "${home_dir}/.buildout/default.cfg":,
             require => File["${home_dir}/.buildout"],
             owner => $user,
             group => $user,
             mode => '0600',
-	    content => template("appie/buildout-default.erb"),
+            content => template("appie/buildout-default.erb"),
         }
 
 
