@@ -104,7 +104,7 @@ class appie {
             group => $user,
             mode => '0700',
         }
-        file { "${ssh_dir}/known_hosts":
+        file { "${ssh_dir}/known_hosts2":
             require => File[$ssh_dir],
             owner => $user,
             group => $user,
