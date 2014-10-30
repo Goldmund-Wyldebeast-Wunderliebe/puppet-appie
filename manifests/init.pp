@@ -1,10 +1,6 @@
 class appie {
 
     class background() {
-        exec { "apt-get update":
-            command => "/usr/bin/apt-get update",
-        }
-
         package { [
                 'ssh', 'sudo',
                 'python-virtualenv', 'python-pip', 'python-dev',
@@ -18,7 +14,6 @@ class appie {
                 # 'apache2' or 'nginx',
             ]:
             ensure => installed,
-            require => Exec['apt-get update'],
         }
 
         file { "/opt/APPS":
