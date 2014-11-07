@@ -61,42 +61,6 @@ class appie {
         }
     }
 
-    define sftpuser($uid, $home_dir, $accountinfo) {
-	$user = $name
-        $ssh_dir = "$home_dir/.ssh"
-	$accounts = keys($accountinfo)
-
-	group { $user:
-	    gid => $uid,
-	    ensure => 'present',
-	}
-        user { $user:
-            require => Group[$user],
-            ensure => 'present',
-            uid => $uid,
-            gid => $user,
-            home => $home_dir,
-            managehome => true,
-            shell => '/bin/false',
-        }
-
-        # SSH access to this account
-        file { $ssh_dir:
-            require => User[$user],
-            ensure => directory,
-            owner => $user,
-            group => $user,
-            mode => '0700',
-        }
-        file { "${ssh_dir}/authorized_keys":
-            require => File[$ssh_dir],
-            owner => $user,
-            group => $user,
-            mode => 600,
-            content => template("appie/authorized_keys.erb"),
-        }
-    }
-
     define appenv(
             $app,
             $accountinfo,
