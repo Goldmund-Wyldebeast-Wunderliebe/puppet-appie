@@ -10,7 +10,7 @@ class appie {
                 'libxslt1-dev',
                 'gettext', 'build-essential', 'pkg-config',
                 'libpcre3-dev',
-		'less', 'vim-nox',
+                'less', 'vim-nox',
                 # 'apache2' or 'nginx',
             ]:
             ensure => installed,
@@ -170,6 +170,8 @@ class appie {
         } elsif ($webserver == 'apache2') {
             file {
                 "/etc/apache2/sites-enabled/zzz-$user":
+                    ensure => absent;
+                "/etc/apache2/sites-enabled/zzz-$user.conf":
                     require => Package['apache2'],
                     content => "Include $home_dir/sites-enabled/\n",
                     owner => root,
