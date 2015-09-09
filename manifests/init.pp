@@ -11,6 +11,7 @@ class appie {
                 'gettext', 'build-essential', 'pkg-config',
                 'libpcre3-dev',
                 'less', 'vim-nox',
+                'libbz2-dev',
                 # 'apache2' or 'nginx',
             ]:
             ensure => installed,
