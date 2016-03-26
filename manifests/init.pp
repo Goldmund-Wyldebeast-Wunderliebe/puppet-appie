@@ -199,8 +199,12 @@ class appie {
                 mode => '0400',
             }
             require postgresql::server
+            postgresql::server::role { $user:
+                createdb => true,
+                password_hash => postgresql_password($user, $dbpassword),
+            }
             postgresql::server::db { $user:
-                user     => $user,
+                user => $user,
                 password => postgresql_password($user, $dbpassword),
             }
         }
