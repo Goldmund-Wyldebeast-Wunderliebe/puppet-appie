@@ -2,17 +2,17 @@ class appie {
 
     class background() {
         package { [
-                'ssh', 'sudo',
-                'python-virtualenv', 'python-pip', 'python-dev',
-                'python-psycopg2', 'libpq-dev',
-                'python-sqlite', 'sqlite3',
-                'git', 'mercurial', 'subversion',
-                'libxslt1-dev',
-                'gettext', 'build-essential', 'pkg-config',
-                'libpcre3-dev',
-                'less', 'vim-nox',
-                'libbz2-dev',
-                # 'apache2' or 'nginx',
+                'sudo',
+                'python-virtualenv',
+                'python-psycopg2',
+		'postgresql-devel',
+        	'git',
+		'gcc',
+		'python-devel',
+		'libxslt-devel',
+		'pcre-devel',
+		'make',
+		'ruby',
             ]:
             ensure => installed,
         }
@@ -41,25 +41,24 @@ class appie {
             mode => '0755',
             require => File["/opt/APPS"],
         }
-        $env_keys = keys($envs)
-        $users = split(
-            inline_template(
-                '<%= env_keys.map { |x| "app-"+name+"-"+x }.join(",") %>'),
-            ',')
         if (size($accounts) > 0) {
             $allow = $accounts
         } else {
             $allow = keys($accountinfo)
         }
-        appie::appenv { $users:
-            app => $name,
-            accountinfo => $accountinfo,
-            accounts => $allow,
-            secret => $secret,
-            makedb => $makedb,
-            webserver => $webserver,
-            envs => $envs,
-        }
+        $env_keys = keys($envs)
+	$env_keys.each |$item| {
+            $user = "app-$name-$item"
+            appie::appenv { $user:
+                app => $name,
+                accountinfo => $accountinfo,
+                accounts => $allow,
+                secret => $secret,
+                makedb => $makedb,
+                webserver => $webserver,
+                envs => $envs,
+            }
+	}
     }
 
     define appenv(
@@ -104,15 +103,14 @@ class appie {
             require => File[$ssh_dir],
             owner => $user,
             group => $user,
-            mode => 600,
+            mode => '0600',
             source => "puppet:///modules/appie/ssh/known_hosts",
         }
         file { "${ssh_dir}/authorized_keys":
             require => File[$ssh_dir],
             owner => $user,
             group => $user,
-            mode => 600,
-            #source => "puppet:///modules/appie/ssh/authorized_keys",
+            mode => '0600',
             content => template("appie/authorized_keys.erb"),
         }
 
@@ -143,7 +141,6 @@ class appie {
             content => template("appie/buildout-default.erb"),
         }
 
-
         # APACHE/NGINX & SUDO config
         file { "$home_dir/sites-enabled":
             require => User[$user],
@@ -170,10 +167,8 @@ class appie {
             }
         } elsif ($webserver == 'apache2') {
             file {
-                "/etc/apache2/sites-enabled/zzz-$user":
-                    ensure => absent;
                 "/etc/apache2/sites-enabled/zzz-$user.conf":
-                    require => Package['apache2'],
+                    require => Package[$webserver],
                     content => "Include $home_dir/sites-enabled/\n",
                     owner => root,
                     group => root,
@@ -181,6 +176,22 @@ class appie {
                 "/etc/sudoers.d/$user":
                     content => "$name ALL=NOPASSWD: \
                             /etc/init.d/apache2 reload\n",
+                    require => Package['sudo'],
+                    owner => root,
+                    group => root,
+                    mode => '0440';
+            }
+        } elsif ($webserver == 'httpd') {
+            file {
+                "/etc/httpd/conf.d/zzz-$user.conf":
+                    require => Package[$webserver],
+                    content => "Include $home_dir/sites-enabled/\n",
+                    owner => root,
+                    group => root,
+                    mode => '0444';
+                "/etc/sudoers.d/$user":
+                    content => "$name ALL=NOPASSWD: \
+                            /usr/bin/systemctl reload httpd\n",
                     require => Package['sudo'],
                     owner => root,
                     group => root,
