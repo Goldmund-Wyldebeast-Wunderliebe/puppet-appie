@@ -1,4 +1,4 @@
-<% @accounts.each do |account| -%>
-<% A = @accountinfo[account] -%>
-<%= A["sshkeytype"] + " " + A["sshkey"] + " " + account %>
+<% @allow.each do |account; ai| -%>
+<% ai = @accountinfo[account] -%>
+<%= ai["sshkeytype"] + " " + ai["sshkey"] + " " + account %>
 <% end -%>
