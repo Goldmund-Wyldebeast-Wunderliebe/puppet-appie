@@ -127,7 +127,6 @@ class appie {
         file { [
                 "${home_dir}/.buildout/eggs",
                 "${home_dir}/.buildout/download",
-                "${home_dir}/.buildout/extends",
             ]:
             require => File["${home_dir}/.buildout"],
             ensure => directory,
