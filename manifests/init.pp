@@ -6,7 +6,6 @@ class appie {
                 'python-virtualenv', 'python-pip', 'python-dev',
                 'python-psycopg2', 'libpq-dev',
                 'python-sqlite', 'sqlite3',
-                'git', 'mercurial', 'subversion',
                 'libxslt1-dev',
                 'gettext', 'build-essential', 'pkg-config',
                 'libpcre3-dev',
