@@ -1,0 +1,11 @@
+<%- | String $sitename | -%>
+<VirtualHost *:80>
+    ServerName <%= $sitename %>
+    RewriteEngine on
+    Alias /.well-known/ /opt/httpsonly/documentroot/.well-known/
+    <Directory /opt/httpsonly/documentroot/.well-known>
+        Require all granted
+    </Directory>
+    RewriteCond %{REQUEST_URI} !^/\.well\-known/
+    RewriteRule ^/(.*)$ https://<%= $sitename %>/$1 [R=301]
+</VirtualHost>

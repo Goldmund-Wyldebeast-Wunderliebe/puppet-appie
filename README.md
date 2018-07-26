@@ -16,6 +16,10 @@ Install the package::
 Usage
 -----
 
+Everything below is outdated...
+
+
+
 Add a section in your /etc/puppet/manifests/site.pp::
 
     # bobbies laptop

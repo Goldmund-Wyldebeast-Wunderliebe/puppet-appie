@@ -1,0 +1,4 @@
+<%- | Array $accounts, Hash $accountinfo | -%>
+<% $accounts.each |String $account| { -%>
+<%= $accountinfo[$account]['sshkey'] %> <%= $accountinfo[$account]['realname'] %>
+<% } -%>
