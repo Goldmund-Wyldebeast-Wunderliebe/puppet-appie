@@ -22,10 +22,7 @@ class appie::backupserver {
         }
     }
 
-    class { 'backuppc::server':
-        backuppc_password => $config['backuppc_password'],
-        topdir            => $topdir,
-    }
+    create_resources('class', {'backuppc::server' => delete($config, 'device')})
 
     package { 'libfile-rsyncp-perl': ensure => installed }
     apache::mod { ['dir', 'cgid']: }
