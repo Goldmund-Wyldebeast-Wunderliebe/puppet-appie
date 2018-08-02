@@ -14,8 +14,8 @@ class appie::base_firewall () {
             proto => 'all',
             state => ['RELATED', 'ESTABLISHED'],
             action => 'accept';
-        '200 maintenance':
-            dport => [22],  # add munin, nagios, backup
+        '010 maintenance':
+            dport => [22],  # ssh, backup
             proto => tcp,
             action => accept;
         '999 drop all':

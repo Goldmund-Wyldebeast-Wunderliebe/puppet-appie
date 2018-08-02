@@ -26,19 +26,4 @@ class appie::backupserver {
 
     package { 'libfile-rsyncp-perl': ensure => installed }
     apache::mod { ['dir', 'cgid']: }
-
-    exec { "check-letsencript-$::fqdn":
-        path => '/bin:/usr/bin',
-        command => 'false',
-        unless => "test -f /etc/letsencrypt/live/$::fqdn/fullchain.pem";
-    }
-    apache::vhost {
-        $::fqdn:
-            require => Exec["check-letsencript-$::fqdn"],
-            port => 443,
-            ssl => true,
-            ssl_cert => "/etc/letsencrypt/live/$::fqdn/fullchain.pem",
-            ssl_key => "/etc/letsencrypt/live/$::fqdn/privkey.pem",
-            docroot => '/var/www/html/localhost';
-    }
 }

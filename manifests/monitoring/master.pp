@@ -19,23 +19,83 @@ class appie::monitoring::master (
         },
 ) {
 
-    class { '::icinga2': manage_repo => true }
-    class { '::icingaweb2': }
+    $db = {
+        ido => {
+            'dbname' => 'icinga2',
+            'username' => 'icinga2',
+            'password' => 'YnunVNhbf6Ec4Vilt4blOLB2rvg',
+        },
+        web => {
+            'dbname' => 'icingaweb2',
+            'username' => 'icingaweb2',
+            'password' => 'vaUUmMEFk8ZApzIdYbgCh4gdU5A',
+        },
+    }
 
-#   class { '::apache::mod::fcgid':
-#       options => {
-#           'FcgidIPCDir'  => '/var/run/fcgidsock',
-#           'SharememPath' => '/var/run/fcgid_shm',
-#           'AddHandler'   => 'fcgid-script .fcgi',
-#       },
-#   }
+    include ::postgresql::server
+    postgresql::server::db {
+        $db['ido']['dbname']:
+            user     => $db['ido']['username'],
+            password => postgresql_password($db['ido']['username'], $db['ido']['password']);
+        $db['web']['dbname']:
+            user     => $db['web']['username'],
+            password => postgresql_password($db['web']['username'], $db['web']['password']);
+    }
+    package { 'php7.0-pgsql': ensure => installed }
+
+    class { '::icinga2': manage_repo => true }
+    class{ '::icinga2::feature::idopgsql':
+        user          => $db['ido']['username'],
+        password      => $db['ido']['password'],
+        database      => $db['ido']['dbname'],
+        import_schema => true,
+        require       => Postgresql::Server::Db[$db['ido']['dbname']],
+    }
+
+    class {'icingaweb2':
+        manage_repo   => false,
+        import_schema => true,
+        db_type       => 'pgsql',
+        db_host       => 'localhost',
+        db_port       => 5432,
+        db_name       => $db['web']['dbname'],
+        db_username   => $db['web']['username'],
+        db_password   => $db['web']['password'],
+        require       => Postgresql::Server::Db[$db['web']['dbname']],
+    }
+
+    class {'icingaweb2::module::monitoring':
+        ido_host        => 'localhost',
+        ido_db_name     => $db['ido']['dbname'],
+        ido_db_username => $db['ido']['username'],
+        ido_db_password => $db['ido']['password'],
+        commandtransports => {
+            icinga2 => {
+                transport => 'api',
+                username  => 'root',
+                password  => 'icinga',
+            }
+        }
+    }
+
+  # icingaweb2::config::resource{'my-sql':
+  #     type        => 'db',
+  #     db_type     => 'pgsql',
+  #     host        => 'localhost',
+  #     port        => 5432,
+  #     db_name     => $db['web']['dbname'],
+  #     db_username => $db['web']['username'],
+  #     db_password => $db['web']['password'],
+  # }
+    icingaweb2::config::authmethod{'localdb':
+        backend  => 'db',
+        resource => 'pgsql-icingaweb2',
+        order    => '01',
+    }
+
     ::apache::mod { ['dir', 'env', 'proxy_fcgi']: }
 
-    class { 'phpfpm':
-        poold_purge => true,
-#       log_level   => 'debug',
-#       error_log   => '/var/log/phpfpm-icinga.log',
-    }
+    class { 'phpfpm': poold_purge => true, }
     phpfpm::pool { 'icinga':
         listen                 => '127.0.0.1:9000',
         listen_allowed_clients => '127.0.0.1',
@@ -60,15 +120,15 @@ class appie::monitoring::master (
             docroot => '/var/www/html/localhost',
 
             aliases => [
-		{
-		    alias => '/icingaweb2',
-		    path => '/usr/share/icingaweb2/public',
-		},
-	    ],
-	    directories => [
-	        {
-		    path => '/usr/share/icingaweb2/public',
-		    custom_fragment => '
+                {
+                    alias => '/icingaweb2',
+                    path => '/usr/share/icingaweb2/public',
+                },
+            ],
+            directories => [
+                {
+                    path => '/usr/share/icingaweb2/public',
+                    custom_fragment => '
 
     Options SymLinksIfOwnerMatch
     AllowOverride None
@@ -113,9 +173,9 @@ class appie::monitoring::master (
     </FilesMatch>
 
 
-		    ',
-	        },
-	    ],
+                    ',
+                },
+            ],
 
     }
 
