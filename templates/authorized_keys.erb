@@ -1,4 +1,7 @@
 <% @accounts.each do |account| -%>
 <% A = @accountinfo[account] -%>
 <%= A["sshkeytype"] + " " + A["sshkey"] + " " + account %>
+<% if A["additional_sshkey"] -%>
+<%= A["additional_sshkey"] %>
+<% end -%>
 <% end -%>
