@@ -9,7 +9,7 @@ class appie::backupserver {
         $mountpoint = '/var/lib/backuppc'
         exec { "mkdir $mountpoint":
             path => '/bin:/usr/bin',
-	    unless => "test -d $mountpoint";
+            unless => "test -d $mountpoint";
         }
         mount { $mountpoint:
             require => Exec["mkdir $mountpoint"],
@@ -24,6 +24,7 @@ class appie::backupserver {
 
     create_resources('class', {'backuppc::server' => delete($config, 'device')})
 
+    package { 'rrdtool': ensure => installed }
     package { 'libfile-rsyncp-perl': ensure => installed }
     apache::mod { ['dir', 'cgid']: }
 }
