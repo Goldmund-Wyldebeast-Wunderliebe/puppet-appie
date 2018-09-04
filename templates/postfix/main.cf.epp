@@ -1,0 +1,11 @@
+<%- | $smarthost, $adminaddr | -%>
+mail_owner = postfix
+inet_interfaces = 127.0.0.1
+inet_protocols = ipv4
+mydestination = $myhostname, localhost
+sendmail_path = /usr/sbin/sendmail
+newaliases_path = /usr/bin/newaliases
+mailq_path = /usr/bin/mailq
+setgid_group = postdrop
+alias_maps = regexp:/etc/postfix/changerecipient
+relayhost = <%= $smarthost %>

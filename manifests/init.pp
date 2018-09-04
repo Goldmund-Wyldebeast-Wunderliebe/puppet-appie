@@ -6,15 +6,18 @@ class appie (
     Hash $backupserver = {},
     Hash $backupclient = {},
     Hash $monitoring = {},
+    Hash $mailconfig = {},
 ) {
     $config = {
-	backupserver => $backupserver,
-	backupclient => $backupclient,
+        backupserver => $backupserver,
+        backupclient => $backupclient,
+        mailconfig => $mailconfig,
     }
     include ::ssh
     include '::appie::base_firewall'
     include '::appie::packages'
     include '::appie::backupclient'
+    include '::appie::postfix'
     include '::appie::monitoring::node'
     class { '::appie::webserver': catchall_redirect => $catchall_redirect }
     include '::letsencrypt'
