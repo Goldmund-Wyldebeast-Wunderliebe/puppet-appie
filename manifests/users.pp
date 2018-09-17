@@ -1,12 +1,11 @@
 class appie::users (
-    Hash $accountinfo,
-    Array $root_users,
-    Array $gone_users,
-    Array $users,
 ) {
     user {
-        $gone_users: ensure => absent;
-        join($root_users, $users):
+        $appie::gone_users:
+            ensure => absent;
+        $appie::root_users:
+            ensure => 'present';
+        $appie::users:
             ensure => 'present';
     }
 }

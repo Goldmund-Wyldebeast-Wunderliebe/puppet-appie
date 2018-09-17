@@ -30,12 +30,6 @@ class appie::webserver (
         ssl_honorcipherorder => true,
     }
 
-    exec { "check-letsencript-$::fqdn":
-        path => '/bin:/usr/bin',
-        command => 'false',
-        unless => "test -f /etc/letsencrypt/live/$::fqdn/fullchain.pem";
-    }
-
     apache::vhost {
         'catchall':
             port => '80',

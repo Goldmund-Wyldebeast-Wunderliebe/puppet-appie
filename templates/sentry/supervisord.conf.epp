@@ -1,0 +1,45 @@
+<%- | String $home | -%>
+[supervisord]
+logfile=<%= $home %>/var/log/supervisord.log
+pidfile=<%= $home %>/var/run/supervisord.pid
+
+[unix_http_server]
+file=<%= $home %>/var/run/supervisord.sock
+
+[rpcinterface:supervisor]
+supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
+
+[supervisorctl]
+serverurl=unix://<%= $home %>/var/run/supervisord.sock
+
+
+[program:sentry-web]
+directory=<%= $home %>/venv/
+environment=SENTRY_CONF="<%= $home %>/.sentry"
+command=<%= $home %>/venv/bin/sentry start
+autostart=true
+autorestart=true
+redirect_stderr=true
+stdout_logfile=<%= $home %>/var/log/sentry-web-out.log
+stderr_logfile=<%= $home %>/var/log/sentry-web-err.log
+
+[program:sentry-worker]
+directory=<%= $home %>/venv/
+environment=SENTRY_CONF="<%= $home %>/.sentry"
+command=<%= $home %>/venv/bin/sentry run worker
+autostart=true
+autorestart=true
+redirect_stderr=true
+stdout_logfile=<%= $home %>/var/log/sentry-worker-out.log
+stderr_logfile=<%= $home %>/var/log/sentry-worker-err.log
+
+[program:sentry-cron]
+directory=<%= $home %>/venv/
+environment=SENTRY_CONF="<%= $home %>/.sentry"
+command=<%= $home %>/venv/bin/sentry run cron
+autostart=true
+autorestart=true
+redirect_stderr=true
+stdout_logfile=<%= $home %>/var/log/sentry-cron-out.log
+stderr_logfile=<%= $home %>/var/log/sentry-cron-err.log
+
