@@ -2,7 +2,6 @@ class appie (
     Hash $accountinfo  = {},
     Hash $appenvs      = {},
     Array $sitenames   = [],
-    String $catchall_redirect = 'https://example.com/',
     Hash $backupserver = {},
     Hash $backupclient = {},
     Hash $monitoring   = {},
@@ -27,7 +26,7 @@ class appie (
     include '::appie::postfix'
     include '::appie::monitoring::node'
     include '::appie::users'
-    class { '::appie::webserver': catchall_redirect => $catchall_redirect }
+    include '::appie::webserver'
     include '::letsencrypt'
     appie::httpsonly { $sitenames: }
     appie::httpsonly { $fqdn: }

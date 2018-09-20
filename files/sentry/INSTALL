@@ -1,0 +1,40 @@
+#!/bin/sh -ex
+# snooped from https://docs.sentry.io/server/installation/python/
+
+virtualenv venv
+. venv/bin/activate
+pip install -U pip
+pip install -U setuptools
+pip install -U sentry
+pip install sentry-plugins
+
+sentry init
+
+if ! grep -q pgpass .sentry/sentry.conf.py
+then
+	sed -e 's/^\s*:  //' >> .sentry/sentry.conf.py << '	 :-'
+	 :  ################################
+	 :  # Database config from ~/.pgpass
+	 :  import os
+	 :  pgpass = os.path.join(os.getenv('HOME'), '.pgpass')
+	 :  PGPASS = dict(zip(
+	 :  	'HOST POST NAME USER PASSWORD'.split(),
+	 :  	file(pgpass).read().strip().split(':')))
+	 :  DATABASES['default'].update(PGPASS)
+	 :  ################################
+	 :  SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+	 :  SESSION_COOKIE_SECURE = True
+	 :  CSRF_COOKIE_SECURE = True
+	 :  SENTRY_WEB_HOST = '127.0.0.1'
+	 :-
+fi
+
+sed -e 's/^\s*:  //' << '	 :-' | crontab
+	 :  @reboot supervisord
+	 :  0 3 * * * . venv/bin/activate ; sentry cleanup --days=30 --silent
+	 :-
+
+sentry upgrade --noinput
+sentry createuser --superuser --email=admin
+supervisord
+

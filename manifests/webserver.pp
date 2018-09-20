@@ -1,5 +1,6 @@
 class appie::webserver (
-    String $catchall_redirect,
+    String $catchall_redirect  = 'http://example.com',
+    Boolean $default_server = false,
 ) {
 
     class { 'apache':
@@ -32,21 +33,26 @@ class appie::webserver (
 
     apache::vhost {
         'catchall':
-            port => '80',
-            redirect_dest => $catchall_redirect,
-            docroot => '/var/www/html';
+            priority       => '00',
+            port           => '80',
+            redirect_dest  => $catchall_redirect,
+            docroot        => '/var/www/html';
         'localhost':
-            serveraliases => ['127.0.0.1'],
-            port => '80',
-            docroot => '/var/www/html/localhost',
+            serveraliases  => ['127.0.0.1'],
+            port           => '80',
+            docroot        => '/var/www/html/localhost',
             manage_docroot => false;
-        $::fqdn:
-            require => Exec["check-letsencript-$::fqdn"],
-            port => 443,
-            ssl => true,
-            ssl_cert => "/etc/letsencrypt/live/$::fqdn/fullchain.pem",
-            ssl_key => "/etc/letsencrypt/live/$::fqdn/privkey.pem",
-            docroot => '/var/www/html/localhost';
+    }
+    if ($default_server) {
+        apache::vhost {
+            $::fqdn:
+                require  => Exec["check-letsencript-$::fqdn"],
+                port     => 443,
+                ssl      => true,
+                ssl_cert => "/etc/letsencrypt/live/$::fqdn/fullchain.pem",
+                ssl_key  => "/etc/letsencrypt/live/$::fqdn/privkey.pem",
+                docroot  => '/var/www/html/localhost';
+        }
     }
 
     firewall {
