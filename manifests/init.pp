@@ -9,6 +9,7 @@ class appie (
     Array $users       = [],
     Array $root_users  = [],
     Array $gone_users  = [],
+    Array $packages    = [],
 ) {
     $config = {
         backupserver => $backupserver,
@@ -27,9 +28,11 @@ class appie (
     include '::appie::monitoring::node'
     include '::appie::users'
     include '::appie::webserver'
+    include '::appie::extradisks'
     include '::letsencrypt'
     appie::httpsonly { $sitenames: }
     appie::httpsonly { $fqdn: }
 
     create_resources(appie::appenv, $appenvs)
+    package { $packages: ensure => installed }
 }
