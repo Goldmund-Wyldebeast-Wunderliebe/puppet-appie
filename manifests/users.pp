@@ -1,11 +1,24 @@
 class appie::users (
 ) {
-    user {
-        $appie::gone_users:
-            ensure => absent;
+    $make_users = (
+	unique($appie::users + $appie::root_users) -
+	$appie::gone_users)
+    $remove_users = (
+	unique($appie::gone_users + keys($appie::accountinfo)) -
+	$make_users)
+    $make_root_users = ($appie::root_users - $remove_users)
+    $make_nonroot_users = ($make_users - $make_root_users)
+
+    each ($remove_users) |$user| {
+        user { $user: ensure => absent; }
+        file { "/etc/sudoers.d/$user": ensure => absent; }
     }
 
-    each (unique($appie::root_users + $appie::users)) |$user| {
+    each ($make_nonroot_users) |$user| {
+        file { "/etc/sudoers.d/$user": ensure => absent; }
+    }
+
+    each ($make_users) |$user| {
         $home_base = "/home"
         $home_dir = "$home_base/$user"
         $ssh_dir = "$home_dir/.ssh"
@@ -40,11 +53,12 @@ class appie::users (
                 });
         }
     }
-    each ($appie::root_users) |$user| {
+
+    each ($make_root_users) |$user| {
         file {
             "/etc/sudoers.d/$user":
                 content => "$user ALL=(ALL:ALL) NOPASSWD: ALL\n",
-                require => Package['sudo'],
+                require => [User[$user], Package['sudo']],
                 owner => root,
                 group => root,
                 mode => '0440';
