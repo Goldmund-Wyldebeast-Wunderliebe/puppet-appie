@@ -14,12 +14,17 @@ class appie::users (
         user { $user:
             ensure  => 'present',
             home    => $home_dir,
-            managehome => true,
             shell   => '/bin/bash',
         }
         file {
-            $ssh_dir:
+            $home_dir:
                 require => User[$user],
+                ensure => directory,
+                owner => $user,
+                group => $user,
+                mode => '0755';
+            $ssh_dir:
+                require => [User[$user], File[$home_dir]],
                 ensure  => directory,
                 owner   => $user,
                 group   => $user,

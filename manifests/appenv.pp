@@ -5,7 +5,7 @@ define appie::appenv (
         $makedb=false,
         $dbpassword='',
         $dbhost='localhost',
-	$elasticsearch_port=0,
+        $elasticsearch_port=0,
         ) {
 
     $user = $name
@@ -73,8 +73,8 @@ define appie::appenv (
                 mode => '0755';
             "/etc/sudoers.d/$user":
                 content => "$user ALL=(ALL:ALL) NOPASSWD: \
-                    /bin/systemctl reload $webserver\n",
-                    #apachectl configtest
+                    /bin/systemctl reload $webserver, \
+                    /usr/sbin/apachectl configtest\n",
                 require => Package['sudo'],
                 owner => root,
                 group => root,
@@ -85,14 +85,14 @@ define appie::appenv (
     appie::database { $user:
         dbpassword => $dbpassword,
         pgpass_file => "${home_dir}/.pgpass",
-	makedb => $makedb,
+        makedb => $makedb,
         dbhost => $dbhost;
     }
 
     if ($elasticsearch_port > 0) {
-	include ::java
-	include ::elasticsearch
-	elasticsearch::instance {
+        include ::java
+        include ::elasticsearch
+        elasticsearch::instance {
             $name:
                 config => {
                     'cluster.name' => $name,
@@ -100,7 +100,7 @@ define appie::appenv (
                     'http.port' => $elasticsearch_port,
                     'transport.tcp.port' => $elasticsearch_port+100,
                 };
-	}
+        }
     }
 }
 
