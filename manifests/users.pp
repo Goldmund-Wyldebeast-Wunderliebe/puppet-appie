@@ -1,16 +1,17 @@
 class appie::users (
 ) {
     $make_users = (
-	unique($appie::users + $appie::root_users) -
-	$appie::gone_users)
+        unique($appie::users + $appie::root_users) -
+        $appie::gone_users)
     $remove_users = (
-	unique($appie::gone_users + keys($appie::accountinfo)) -
-	$make_users)
+        unique($appie::gone_users + keys($appie::accountinfo)) -
+        $make_users)
     $make_root_users = ($appie::root_users - $remove_users)
     $make_nonroot_users = ($make_users - $make_root_users)
 
     each ($remove_users) |$user| {
         user { $user: ensure => absent; }
+        group { $user: ensure => absent; }
         file { "/etc/sudoers.d/$user": ensure => absent; }
     }
 
@@ -23,9 +24,17 @@ class appie::users (
         $home_dir = "$home_base/$user"
         $ssh_dir = "$home_dir/.ssh"
         $allowed_users = [$user]
+        $uid = $appie::accountinfo[$user]['uid']
 
+        group { $user:
+            ensure  => 'present',
+            gid     => $uid,
+        }
         user { $user:
             ensure  => 'present',
+            require => Group[$user],
+            uid     => $uid,
+            gid     => $uid,
             home    => $home_dir,
             shell   => '/bin/bash',
         }
