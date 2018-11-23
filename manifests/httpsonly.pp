@@ -13,7 +13,7 @@ define appie::httpsonly () {
         webroot_paths => ['/opt/httpsonly/documentroot'],
     }
 
-    exec { "check-letsencript-$sitename":
+    exec { "check-letsencrypt-$sitename":
         path    => '/bin:/usr/bin',
         command => 'false',
         unless  => "test -f /etc/letsencrypt/live/$sitename/fullchain.pem";

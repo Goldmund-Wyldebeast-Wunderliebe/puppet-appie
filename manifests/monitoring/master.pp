@@ -105,15 +105,9 @@ class appie::monitoring::master (
         },
     }
 
-  # exec { "check-letsencript-$::fqdn":
-  #     path    => '/bin:/usr/bin',
-  #     command => 'false',
-  #     unless  => "test -f /etc/letsencrypt/live/$::fqdn/fullchain.pem";
-  # }
-
     apache::vhost {
         $::fqdn:
-            require => Exec["check-letsencript-$::fqdn"],
+            require => Exec["check-letsencrypt-$::fqdn"],
             port => 443,
             ssl => true,
             ssl_cert => "/etc/letsencrypt/live/$::fqdn/fullchain.pem",
