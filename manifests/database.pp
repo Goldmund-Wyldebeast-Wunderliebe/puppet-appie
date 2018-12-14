@@ -27,11 +27,7 @@ define appie::database (
 }
 
 class appie::database::pgconfig {
-    class { 'postgresql::globals':
-        encoding => 'UTF-8',
-        locale   => 'en_US.UTF-8',
-    }
-    class { 'postgresql::server':
-    }
+    include '::postgresql::globals'
+    include '::postgresql::server'
 }
 
