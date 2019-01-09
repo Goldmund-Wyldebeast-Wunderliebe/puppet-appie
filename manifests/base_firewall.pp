@@ -1,6 +1,6 @@
 class appie::base_firewall () {
-
-    resources { "firewall": purge => true }
+    resources { ['firewall', 'firewallchain']: purge => false }
+    firewallchain { 'INPUT:filter:IPv4': purge => true }
     class { 'firewall': }
     firewall {
         '000 accept all icmp':
