@@ -13,7 +13,8 @@ define appie::database (
             mode => '0400',
         }
         if ($makedb) {
-            require appie::database::pgconfig
+            include '::postgresql::globals'
+            include '::postgresql::server'
             postgresql::server::role { $user:
                 createdb => true,
                 password_hash => postgresql_password($user, $dbpassword),
@@ -24,10 +25,5 @@ define appie::database (
             }
         }
     }
-}
-
-class appie::database::pgconfig {
-    include '::postgresql::globals'
-    include '::postgresql::server'
 }
 
