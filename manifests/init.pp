@@ -21,7 +21,6 @@ class appie (
     }
     include ::ssh
     include '::appie::base_firewall'
-    include '::appie::packages'
     include '::appie::backupclient'
     include '::appie::postfix'
     include '::appie::monitoring::node'
