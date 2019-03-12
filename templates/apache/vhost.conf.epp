@@ -1,4 +1,7 @@
 <%- | String $sitename | -%>
+
+LogFormat "%V:%p - %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-agent}i\"" combined
+
 <VirtualHost *:80>
     ServerName <%= $sitename %>
     RewriteEngine on
@@ -8,4 +11,7 @@
     </Directory>
     RewriteCond %{REQUEST_URI} !^/\.well\-known/
     RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    ErrorLog "/var/log/apache2/error.log"
+    CustomLog "/var/log/apache2/access.log" combined
+    ServerSignature Off
 </VirtualHost>
