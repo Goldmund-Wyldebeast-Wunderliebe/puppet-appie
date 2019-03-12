@@ -1,7 +1,6 @@
 class appie (
     Hash $accountinfo  = {},
     Hash $appenvs      = {},
-    Array $sitenames   = [],
     Hash $backupserver = {},
     Hash $backupclient = {},
     Hash $monitoring   = {},
@@ -29,9 +28,6 @@ class appie (
     include '::appie::users'
     include '::appie::webserver'
     include '::appie::extradisks'
-    include '::letsencrypt'
-    appie::httpsonly { $sitenames: }
-    appie::httpsonly { $fqdn: }
 
     create_resources(appie::appenv, $appenvs)
     package { $packages: ensure => installed }

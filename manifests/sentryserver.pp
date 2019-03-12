@@ -14,6 +14,11 @@ class appie::sentryserver ($user='', $sitename='') {
         ]: ensure => installed
     }
 
+    sysctl { 'vm.overcommit_memory':
+        value  => "1",
+        notify => Service["redis"]
+    }
+
     service { 'redis': require => Package['redis-server'], ensure => 'running' }
     postgresql::server::extension {
         'citext': database => 'sentry', ensure => 'present';
@@ -43,7 +48,7 @@ class appie::sentryserver ($user='', $sitename='') {
             ssl => true,
             ssl_cert => "/etc/letsencrypt/live/$sitename/fullchain.pem",
             ssl_key => "/etc/letsencrypt/live/$sitename/privkey.pem",
-            proxy_dest => 'http://localhost:9000',
+            proxy_dest => 'http://localhost:9001',
             docroot => '/var/www/html',
             priority => '30';
     }
