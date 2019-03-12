@@ -6,6 +6,7 @@ class appie::webserver (
     include '::apache'
     include '::apache::mod::event'
     include '::apache::mod::ssl'
+    include '::apache::mod::alias'
 
     firewall {
         '100 webserver':
